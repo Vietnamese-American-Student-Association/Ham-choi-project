@@ -11,7 +11,7 @@ This is a Next.js application that integrates Supabase for database management, 
 ## Project Structure
 
 ```
-vasa-philanthropy-project
+Ham-choi-project
 ├── public
 │   └── favicon.ico
 ├── src
@@ -42,7 +42,7 @@ Follow these steps to set up and run the project locally:
 1. **Clone the repository:**
    ```bash
    git clone <repository-url>
-   cd vasa-philanthropy-project
+   cd Ham-choi-project
    ```
 
 2. **Install dependencies:**
