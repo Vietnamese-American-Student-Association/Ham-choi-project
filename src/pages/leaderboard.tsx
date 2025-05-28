@@ -1,5 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import supabase from '../utils/supabaseClient';
+import BottomNavBar from '../components/bottomNavBar';
+import { useRouter } from 'next/router';
 
 interface Team {
   color: string;
@@ -9,6 +11,7 @@ interface Team {
 const Leaderboard: React.FC = () => {
   const [teams, setTeams] = useState<Team[]>([]);
   const [loading, setLoading] = useState(true);
+  const router = useRouter();
 
   useEffect(() => {
     const fetchAndSubscribe = async () => {
@@ -130,6 +133,19 @@ const Leaderboard: React.FC = () => {
           </div>
         ))}
       </div>
+      <BottomNavBar
+                onTabChange={(tab) => {
+                    if (tab === 'game') {
+                        router.push('/game');
+                    } else if (tab === 'log') {
+                        router.push('/log');
+                    } else if (tab === 'officer') {
+                        router.push('/officer');
+                    } else if (tab === 'leaderboard') {
+                        router.push('/leaderboard');
+                    }
+                }}
+                initialTab="leaderboard"/>
     </div>
   );
 };

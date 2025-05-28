@@ -19,8 +19,10 @@ const LoginPage = () => {
             body: JSON.stringify({ username }),
         });
 
+        const result = await res.json();
+
         if (res.ok) {
-            router.push(`/dashboard?user=${encodeURIComponent(username)}`);
+            router.push(`/leaderboard?user=${encodeURIComponent(result.name)}`);
         } else {
             setError('Login failed');
         }
