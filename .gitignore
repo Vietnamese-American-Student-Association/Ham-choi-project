@@ -1,3 +1,28 @@
 node_modules
 .env.local
 .next/
+.env
+.DS_Store
+# Logs
+logs
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+# Build output
+dist
+# Dependency directories
+jspm_packages/
+# Optional npm cache directory
+.npm
+# Optional eslint cache
+.eslintcache
+# Next.js build output
+.next/
+# Production
+build
+# Testing
+coverage
+# Miscellaneous
+.idea
+# Mac system files
+.DS_Store  
