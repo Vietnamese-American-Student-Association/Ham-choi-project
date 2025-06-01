@@ -11,9 +11,17 @@ interface Team {
 const Leaderboard: React.FC = () => {
   const [teams, setTeams] = useState<Team[]>([]);
   const [loading, setLoading] = useState(true);
+  const [officerName, setOfficerName] = useState('');
   const router = useRouter();
 
   useEffect(() => {
+    const name = sessionStorage.getItem('officerName');
+    if (!name) {
+      router.push('/login');
+      return;
+    }
+    setOfficerName(name);
+
     const fetchAndSubscribe = async () => {
       const { data, error } = await supabase
         .from('teams')
@@ -71,12 +79,11 @@ const Leaderboard: React.FC = () => {
   return (
     <div className="min-h-screen bg-gray-50 flex flex-col items-center py-6">
       <header className="w-full flex items-center justify-between px-4 mb-4">
-        <button className="text-2xl">{'←'}</button>
+        <div className="text-sm text-gray-700">Welcome, {officerName}</div>
         <h1 className="text-xl font-bold text-center flex-1">Leaderboard</h1>
         <div style={{ width: 32 }} />
       </header>
 
-      {/* Top 3 */}
       <div className="flex items-end justify-center gap-4 mb-8">
         {[topThree[1], topThree[0], topThree[2]].map((team, visualIdx) => {
           if (!team) return null;
@@ -116,7 +123,6 @@ const Leaderboard: React.FC = () => {
         })}
       </div>
 
-      {/* Rest of leaderboard */}
       <div className="bg-white rounded-2xl shadow-md w-full max-w-md p-4">
         {rest.map((team, idx) => (
           <div
@@ -124,28 +130,23 @@ const Leaderboard: React.FC = () => {
             className="flex items-center justify-between py-2 border-b last:border-b-0"
           >
             <div className="flex items-center gap-3">
-              <span className="font-bold text-gray-400 w-6 text-center">
-                {idx + 4}
-              </span>
+              <span className="font-bold text-gray-400 w-6 text-center">{idx + 4}</span>
               <span className="font-medium">{team.color}</span>
             </div>
             <span className="text-gray-600 font-semibold">{team.score} pts</span>
           </div>
         ))}
       </div>
+
       <BottomNavBar
-                onTabChange={(tab) => {
-                    if (tab === 'game') {
-                        router.push('/game');
-                    } else if (tab === 'log') {
-                        router.push('/log');
-                    } else if (tab === 'officer') {
-                        router.push('/officer');
-                    } else if (tab === 'leaderboard') {
-                        router.push('/leaderboard');
-                    }
-                }}
-                initialTab="leaderboard"/>
+        onTabChange={(tab) => {
+          if (tab === 'game') router.push('/game');
+          else if (tab === 'log') router.push('/log');
+          else if (tab === 'officer') router.push('/officer');
+          else if (tab === 'leaderboard') router.push('/leaderboard');
+        }}
+        initialTab="leaderboard"
+      />
     </div>
   );
 };
