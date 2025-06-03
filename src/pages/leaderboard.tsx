@@ -140,7 +140,7 @@ const Leaderboard: React.FC = () => {
 
       <BottomNavBar
         onTabChange={(tab) => {
-          if (tab === 'game') router.push('/game');
+          if (tab === 'game') router.push('/games');
           else if (tab === 'log') router.push('/log');
           else if (tab === 'officer') router.push('/officerChallenge');
           else if (tab === 'leaderboard') router.push('/leaderboard');

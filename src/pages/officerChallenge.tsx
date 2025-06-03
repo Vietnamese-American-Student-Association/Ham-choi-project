@@ -113,7 +113,7 @@ const OfficerChallenge: React.FC = () => {
       <BottomNavBar
         onTabChange={(tab) => {
           if (tab === 'leaderboard') router.push('/leaderboard');
-          else if (tab === 'game') router.push('/game');
+          else if (tab === 'game') router.push('/games');
           else if (tab === 'log') router.push('/log');
         }}
         initialTab="officer"
