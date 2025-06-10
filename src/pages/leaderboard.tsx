@@ -5,7 +5,7 @@ import { useRouter } from 'next/router';
 
 interface Team {
   color: string;
-  score: number;
+  points: number;
 }
 
 const Leaderboard: React.FC = () => {
@@ -25,8 +25,8 @@ const Leaderboard: React.FC = () => {
     const fetchAndSubscribe = async () => {
       const { data, error } = await supabase
         .from('teams')
-        .select('color, score')
-        .order('score', { ascending: false });
+        .select('color, points')
+        .order('points', { ascending: false });
 
       if (error) {
         console.error('Error fetching leaderboard:', error);
@@ -48,8 +48,8 @@ const Leaderboard: React.FC = () => {
           async () => {
             const { data: updatedData, error } = await supabase
               .from('teams')
-              .select('color, score')
-              .order('score', { ascending: false });
+              .select('color, points')
+              .order('points', { ascending: false });
 
             if (error) console.error('Error refetching leaderboard:', error);
             else setTeams(updatedData || []);
@@ -115,7 +115,7 @@ const Leaderboard: React.FC = () => {
               <div style={{ ...styles.rankInfo, color: textColor }}>
                 <div>{rank}</div>
                 <div>{team.color}</div>
-                <div style={{ fontSize: 12, color: '#888' }}>{team.score} pts</div>
+                <div style={{ fontSize: 12, color: '#888' }}>{team.points} pts</div>
               </div>
             </div>
           );
@@ -133,7 +133,7 @@ const Leaderboard: React.FC = () => {
               <span style={styles.rank}>{idx + 4}</span>
               <span>{team.color}</span>
             </div>
-            <span style={styles.points}>{team.score} pts</span>
+            <span style={styles.points}>{team.points} pts</span>
           </div>
         ))}
       </div>
