@@ -1,7 +1,10 @@
-import React, { useEffect, useState } from 'react';
+'use client';
+
+import { useEffect, useState } from 'react';
+import { useRouter } from 'next/router';
+import { motion, AnimatePresence } from 'framer-motion';
 import supabase from '../utils/supabaseClient';
 import BottomNavBar from '../components/bottomNavBar';
-import { useRouter } from 'next/router';
 
 interface Team {
   color: string;
@@ -14,6 +17,7 @@ const Leaderboard: React.FC = () => {
   const [officerName, setOfficerName] = useState('');
   const router = useRouter();
 
+  /* ─────────── Fetch + realtime subscription ─────────── */
   useEffect(() => {
     const name = sessionStorage.getItem('officerName');
     if (!name) {
@@ -22,13 +26,14 @@ const Leaderboard: React.FC = () => {
     }
     setOfficerName(name);
 
-    const fetchAndSubscribe = async () => {
+    const init = async () => {
       const { data, error } = await supabase
         .from('teams')
         .select('color, points')
         .order('points', { ascending: false });
 
       if (error) {
+        // eslint-disable-next-line no-console
         console.error('Error fetching leaderboard:', error);
         return;
       }
@@ -36,39 +41,40 @@ const Leaderboard: React.FC = () => {
       setTeams(data || []);
       setLoading(false);
 
-      const subscription = supabase
+      // live updates
+      const channel = supabase
         .channel('leaderboard-updates')
         .on(
           'postgres_changes',
-          {
-            event: '*',
-            schema: 'public',
-            table: 'teams',
-          },
+          { event: '*', schema: 'public', table: 'teams' },
           async () => {
-            const { data: updatedData, error } = await supabase
+            const { data: newData, error: refetchErr } = await supabase
               .from('teams')
               .select('color, points')
               .order('points', { ascending: false });
 
-            if (error) console.error('Error refetching leaderboard:', error);
-            else setTeams(updatedData || []);
-          }
+            if (refetchErr) {
+              // eslint-disable-next-line no-console
+              console.error('Error refetching leaderboard:', refetchErr);
+            } else {
+              setTeams(newData || []);
+            }
+          },
         )
         .subscribe();
 
       return () => {
-        supabase.removeChannel(subscription);
+        supabase.removeChannel(channel);
       };
     };
 
-    fetchAndSubscribe();
-  }, []);
+    init();
+  }, [router]);
 
   if (loading) {
     return (
-      <div style={styles.centered}>
-        <p>Loading...</p>
+      <div className="flex min-h-screen items-center justify-center bg-amber-50">
+        Loading…
       </div>
     );
   }
@@ -76,165 +82,93 @@ const Leaderboard: React.FC = () => {
   const topThree = teams.slice(0, 3);
   const rest = teams.slice(3);
 
+  /* ─────────── helpers ─────────── */
+  const medalColor = (rank: number) => {
+    if (rank === 1) return 'border-yellow-400 text-yellow-500';
+    if (rank === 2) return 'border-gray-400 text-gray-400';
+    return 'border-orange-500 text-orange-500';
+  };
+
   return (
-    <div style={styles.page}>
-      <header style={styles.header}>
-        <span style={styles.welcome}>Welcome, {officerName}</span>
-        <h1 style={styles.title}>Leaderboard</h1>
+    <div className="min-h-screen bg-gradient-to-b from-amber-50 to-amber-100 p-5">
+      <header className="mb-8 text-center">
+        <p className="text-sm text-gray-600">Welcome, {officerName}</p>
+        <h1 className="mt-1 text-3xl font-bold text-red-800">Leaderboard</h1>
       </header>
 
-      {/* Top 3 */}
-      <div style={styles.topThreeWrapper}>
-        {[topThree[1], topThree[0], topThree[2]].map((team, visualIdx) => {
+      {/* 🏆 Top-3 podium */}
+      <div className="mb-9 flex justify-center gap-8">
+        {[topThree[1], topThree[0], topThree[2]].map((team, visual) => {
           if (!team) return null;
-          const actualIdx = visualIdx === 1 ? 0 : visualIdx === 0 ? 1 : 2;
-          const rank = actualIdx + 1;
-
-          const borderColor =
-            rank === 1 ? '#fdd835' : rank === 2 ? '#bdbdbd' : '#fb8c00';
-          const textColor =
-            rank === 1 ? '#fbc02d' : rank === 2 ? '#9e9e9e' : '#f57c00';
-          const translateY = rank === 1 ? '-15px' : '0px';
-
+          const trueIdx = visual === 1 ? 0 : visual === 0 ? 1 : 2;
+          const rank = trueIdx + 1;
+          const yOffset = rank === 1 ? -20 : 0;
           return (
-            <div
+            <motion.div
               key={team.color}
-              style={{
-                ...styles.podiumItem,
-                transform: `translateY(${translateY})`,
-              }}
+              layout
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: yOffset }}
+              transition={{ type: 'spring', stiffness: 300, damping: 24 }}
+              className="flex flex-col items-center"
             >
               <div
-                style={{
-                  ...styles.avatar,
-                  borderColor: borderColor,
-                }}
+                className={`flex h-20 w-20 items-center justify-center rounded-full border-4 bg-white shadow-lg ${medalColor(
+                  rank,
+                )}`}
               >
-                <span style={{ fontSize: 24 }}>{team.color[0]}</span>
+                <span className="text-2xl font-semibold">{team.color[0]}</span>
               </div>
-              <div style={{ ...styles.rankInfo, color: textColor }}>
-                <div>{rank}</div>
+              <div className="mt-2 text-center font-semibold leading-tight">
+                <div className="text-lg">{rank}</div>
                 <div>{team.color}</div>
-                <div style={{ fontSize: 12, color: '#888' }}>{team.points} pts</div>
+                <div className="text-xs text-gray-500">{team.points} pts</div>
               </div>
-            </div>
+            </motion.div>
           );
         })}
       </div>
 
-      {/* Rest of leaderboard */}
-      <div style={styles.card}>
-        {rest.map((team, idx) => (
-          <div
-            key={team.color}
-            style={styles.row}
-          >
-            <div style={styles.rowLeft}>
-              <span style={styles.rank}>{idx + 4}</span>
-              <span>{team.color}</span>
-            </div>
-            <span style={styles.points}>{team.points} pts</span>
-          </div>
-        ))}
-      </div>
+      {/* 📋 Rest of leaderboard */}
+      <motion.div
+        layout
+        className="mx-auto max-w-xl rounded-xl bg-white p-6 shadow-lg"
+      >
+        <AnimatePresence>
+          {rest.map((team, idx) => (
+            <motion.div
+              key={team.color}
+              layout
+              initial={{ opacity: 0, x: 30 }}
+              animate={{ opacity: 1, x: 0 }}
+              exit={{ opacity: 0, x: -30 }}
+              transition={{ duration: 0.25 }}
+              className="flex items-center justify-between border-b py-3 last:border-none"
+            >
+              <div className="flex items-center gap-4">
+                <span className="w-6 text-center font-bold text-gray-500">
+                  {idx + 4}
+                </span>
+                <span>{team.color}</span>
+              </div>
+              <span className="font-semibold text-gray-600">
+                {team.points} pts
+              </span>
+            </motion.div>
+          ))}
+        </AnimatePresence>
+      </motion.div>
 
       <BottomNavBar
+        initialTab="leaderboard"
         onTabChange={(tab) => {
           if (tab === 'game') router.push('/games');
           else if (tab === 'log') router.push('/log');
           else if (tab === 'officer') router.push('/officerChallenge');
-          else if (tab === 'leaderboard') router.push('/leaderboard');
         }}
-        initialTab="leaderboard"
       />
     </div>
   );
-};
-
-const styles: { [key: string]: React.CSSProperties } = {
-  page: {
-    backgroundColor: '#fff8f0',
-    minHeight: '100vh',
-    padding: '20px',
-    fontFamily: '"Segoe UI", Tahoma, Geneva, Verdana, sans-serif',
-  },
-  header: {
-    textAlign: 'center',
-    marginBottom: 20,
-  },
-  welcome: {
-    fontSize: 14,
-    color: '#555',
-  },
-  title: {
-    fontSize: 26,
-    fontWeight: 'bold',
-    color: '#b71c1c',
-    marginTop: 4,
-  },
-  centered: {
-    minHeight: '100vh',
-    display: 'flex',
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  topThreeWrapper: {
-    display: 'flex',
-    justifyContent: 'center',
-    gap: 24,
-    marginBottom: 20,
-  },
-  podiumItem: {
-    display: 'flex',
-    flexDirection: 'column',
-    alignItems: 'center',
-    transition: 'transform 0.3s ease',
-  },
-  avatar: {
-    backgroundColor: '#fff',
-    width: 64,
-    height: 64,
-    borderRadius: '50%',
-    border: '4px solid',
-    display: 'flex',
-    justifyContent: 'center',
-    alignItems: 'center',
-    boxShadow: '0 4px 10px rgba(0,0,0,0.1)',
-  },
-  rankInfo: {
-    marginTop: 8,
-    fontWeight: 'bold',
-    textAlign: 'center',
-  },
-  card: {
-    backgroundColor: '#ffffff',
-    borderRadius: 12,
-    boxShadow: '0 4px 12px rgba(0,0,0,0.08)',
-    padding: '20px',
-    maxWidth: 500,
-    margin: '0 auto',
-  },
-  row: {
-    display: 'flex',
-    justifyContent: 'space-between',
-    padding: '10px 0',
-    borderBottom: '1px solid #eee',
-  },
-  rowLeft: {
-    display: 'flex',
-    gap: 12,
-    alignItems: 'center',
-  },
-  rank: {
-    fontWeight: 'bold',
-    color: '#999',
-    width: 20,
-    textAlign: 'center',
-  },
-  points: {
-    fontWeight: 600,
-    color: '#555',
-  },
 };
 
 export default Leaderboard;
