@@ -60,6 +60,16 @@ const OfficerChallenge: React.FC = () => {
         throw new Error(errorData.message || 'Update failed');
       }
 
+      // Record activity in the logs table
+      await fetch('/api/logs', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          officer: officerName,
+          action,
+          teamColor: color
+        })
+      });
       // Refresh data after successful update
       const [teamsRes, completedRes] = await Promise.all([
         fetch('/api/teams'),
