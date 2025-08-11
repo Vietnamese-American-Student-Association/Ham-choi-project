@@ -3,7 +3,8 @@ import { FaTrophy, FaGamepad, FaClipboardList, FaUserShield } from 'react-icons/
 
 type Tab = 'leaderboard' | 'game' | 'log' | 'officer';
 
-const tabConfig: { key: Tab; label: string; icon: React.ReactNode }[] = [
+// Fix 1: Use JSX.Element instead of React.ReactNode for icon type
+const tabConfig: { key: Tab; label: string; icon: React.ReactElement }[] = [
     { key: 'leaderboard', label: 'Leaderboard', icon: <FaTrophy /> },
     { key: 'game', label: 'Game', icon: <FaGamepad /> },
     { key: 'officer', label: 'Officer', icon: <FaUserShield /> },
