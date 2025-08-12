@@ -20,7 +20,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     .single();
 
   if (error || !data) {
-    return res.status(401).json({ message: 'Invalid username' });
+    return res.status(401).json({ message: error.message });
   }
 
   return res.status(200).json({ name: data.name });
