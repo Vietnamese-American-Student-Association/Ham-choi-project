@@ -41,7 +41,7 @@ const OfficerChallenge: React.FC = () => {
   const updateStatus = async (color: string, action: 'increment' | 'decrement') => {
     // Prevent multiple simultaneous requests for the same team
     if (loadingAction || processingTeams.has(color)) return;
-    
+
     setLoadingAction(true);
     setProcessingTeams(prev => new Set(prev).add(color));
 
@@ -75,7 +75,7 @@ const OfficerChallenge: React.FC = () => {
         fetch('/api/teams'),
         fetch(`/api/officerCompletedTeams?officerName=${officerName}`),
       ]);
-      
+
       if (teamsRes.ok && completedRes.ok) {
         setTeams(await teamsRes.json());
         setCompletedTeams(await completedRes.json());
@@ -123,7 +123,7 @@ const OfficerChallenge: React.FC = () => {
           {teams.map((team) => {
             const isCompleted = completedTeams.includes(team.color);
             const isProcessing = processingTeams.has(team.color);
-            
+
             return (
               <div
                 key={team.id}
@@ -134,13 +134,13 @@ const OfficerChallenge: React.FC = () => {
                 }}
               >
                 <span style={{ ...styles.teamName, opacity: isCompleted ? 1 : 0.6 }}>
-                  {team.color} {isCompleted && <span style={styles.checkmark}>✅</span>}
+                  {team.color} ({team.officer_counter}/18) {isCompleted && <span style={styles.checkmark}>✅</span>}
                   {isProcessing && <span style={styles.processing}>⏳</span>}
                 </span>
                 <div style={styles.buttonGroup}>
                   <button
-                    style={{ 
-                      ...styles.button, 
+                    style={{
+                      ...styles.button,
                       backgroundColor: isCompleted || isProcessing ? '#ccc' : '#81c784',
                       cursor: isCompleted || isProcessing || loadingAction ? 'not-allowed' : 'pointer'
                     }}
@@ -150,8 +150,8 @@ const OfficerChallenge: React.FC = () => {
                     {isProcessing && !isCompleted ? 'Processing...' : 'Complete'}
                   </button>
                   <button
-                    style={{ 
-                      ...styles.button, 
+                    style={{
+                      ...styles.button,
                       backgroundColor: !isCompleted || isProcessing ? '#ccc' : '#e57373',
                       cursor: !isCompleted || isProcessing || loadingAction ? 'not-allowed' : 'pointer'
                     }}
