@@ -10,7 +10,7 @@ interface GameRow { id:number; name:string; rounds:Round[] }
 const cssColor = (label:string):string => {
   const m:Record<string,string> = {
     Red:'#ef5350',Blue:'#42a5f5',Green:'#66bb6a',Yellow:'#ffeb3b',
-    Purple:'#ab47bc',Orange:'#ffa726',Pink:'#ec407a',Cyan:'#26c6da',
+    Purple:'#ab47bc',White:'#e0e0e0',Pink:'#ec407a',Cyan:'#26c6da',
   };
   return m[label] ?? label.toLowerCase();
 };
